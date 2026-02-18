@@ -1,0 +1,50 @@
+diff --git a/.github/workflows/daily.yml b/.github/workflows/daily.yml
+index 1fdcf7eab99fe9773dea734db7e9251eef47e2dd..72bb79d9aa1b4bef2ace33741cd9ee321396501c 100644
+--- a/.github/workflows/daily.yml
++++ b/.github/workflows/daily.yml
+@@ -1,29 +1,36 @@
+-name: Daily Stock Scanner
++name: Run 200DMA Scanner
+ 
+ on:
++  workflow_dispatch:
+   schedule:
++    # 21:30 UTC on weekdays
+     - cron: "30 21 * * 1-5"
+-  workflow_dispatch:
+ 
+ jobs:
+   run-scanner:
+     runs-on: ubuntu-latest
+ 
+     steps:
+       - name: Checkout repository
+-        uses: actions/checkout@v3
++        uses: actions/checkout@v4
+ 
+       - name: Set up Python
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@v5
+         with:
+           python-version: "3.11"
++          cache: "pip"
+ 
+       - name: Install dependencies
+         run: |
+-          pip install yfinance pandas
++          python -m pip install --upgrade pip
++          pip install pandas yfinance
+ 
+       - name: Run scanner
+-        env:
+-          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+-        run: python scanner.py
++        run: |
++          python scanner.py | tee scanner-output.txt
++
++      - name: Upload scanner output artifact
++        uses: actions/upload-artifact@v4
++        with:
++          name: scanner-output
++          path: scanner-output.txt
